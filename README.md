@@ -11,3 +11,13 @@ type: custom:realistic-bubble-level-card<br>
 x_entity: sensor.myxdata<br>
 y_entity: sensor.myydata
 
+
+<img src="https://github.com/chinswain/Home-Assistant-bubble-level/blob/main/bubble.png" alt="">
+
+For the bar level:
+
+type: custom:styled-bar-bubble-level-card<br>
+x_entity: sensor.knebworth_apiary_hive_1_position_x<br>
+horizontal: true
+
+<img src="https://github.com/chinswain/Home-Assistant-bubble-level/blob/main/bar.png" alt="">
