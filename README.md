@@ -8,8 +8,6 @@ Resource type: JavaScript Module
 To use, add a manual card:
 
 type: custom:realistic-bubble-level-card
-
 x_entity: sensor.myxdata
-
 y_entity: sensor.myydata
 
