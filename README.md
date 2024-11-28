@@ -7,7 +7,7 @@ Resource type: JavaScript Module
 
 To use, add a manual card:
 
-type: custom:realistic-bubble-level-card
-x_entity: sensor.myxdata
+type: custom:realistic-bubble-level-card<br>
+x_entity: sensor.myxdata<br>
 y_entity: sensor.myydata
 
