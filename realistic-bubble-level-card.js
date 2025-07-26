@@ -4,28 +4,39 @@ class RealisticBubbleLevelCard extends HTMLElement {
     this.attachShadow({ mode: "open" });
     const style = document.createElement("style");
 
-style.textContent = `
-  .card-header {
-    font-size: 17px;
-    padding: 4px 12px 0px 16px; /* Reduced top padding, adjusted bottom */
-    text-align: left;
-    margin-bottom: 4px;
-    margin-top: 13px; /* Keeps downward shift */
-  }
-  .flex {
-    display: flex;
-    align-items: center;
-  }
-  .name > span {
-    font-size: 17px;
-    font-weight: 500; /* Less bold than 700 (bold) */
-    color: var(--primary-text-color);
-    opacity: 0.65; /* Opacity handled by color alpha */
-	
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+    style.textContent = `
+	.card-header {
+	  display: flex;
+	  align-items: center;
+	  justify-content: space-between;
+	  font-size: var(--ha-card-header-font-size, 1.2em);
+	  font-weight: 500;
+	  color: var(--primary-text-color);
+	  opacity: 1;
+	  padding: 17px 16px 4px 16px;
+	  margin: 0;
+	}
+
+	.flex {
+	  display: flex;
+	  align-items: center;
+	}
+
+	.card-header .header-icon { 
+	  margin-left: auto;
+	  color: var(--primary-text-color);
+	  opacity: 1;
+	}
+
+	.name > span {
+	  font-size: 17px;
+	  font-weight: 500;
+	  color: var(--primary-text-color);
+	  opacity: 0.7;
+	  white-space: nowrap;
+	  overflow: hidden;
+	  text-overflow: ellipsis;
+	}
   
 `;
     this.shadowRoot.appendChild(style);
@@ -38,59 +49,68 @@ style.textContent = `
       throw new Error("You need to define x_entity and y_entity");
     }
     this.config = config;
-	    this.multiplier = config.multiplier || 5; // Default multiplier for tilt sensitivity
+    this.multiplier = config.multiplier || 5; // Default multiplier for tilt sensitivity
   }
- 
 
-  set hass(hass) {
-    this._hass = hass;
-    const xValue = parseFloat(hass.states[this.config.x_entity]?.state || 0);
-    const yValue = parseFloat(hass.states[this.config.y_entity]?.state || 0);
-    this.xValue = xValue;
-    this.yValue = yValue;
 
-    if (!this.content) {
-      this.content = document.createElement("div");
-	if (this.config.title) {
-	  const headerDiv = document.createElement("div");
-	  headerDiv.className = "card-header flex";
-	  const nameDiv = document.createElement("div");
-	  nameDiv.className = "name flex";
-	  const titleSpan = document.createElement("span");
-	  titleSpan.innerText = this.config.title;
-	  nameDiv.appendChild(titleSpan);
-	  headerDiv.appendChild(nameDiv);
-	  this.content.appendChild(headerDiv);
-	}
-      const wrapper = document.createElement("div");
-      wrapper.style.position = "relative";
-      wrapper.style.width = "100%";
-      wrapper.style.paddingBottom = "100%";
-      const container = document.createElement("div");
-      container.style.position = "absolute";
-      container.style.top = "0";
-      container.style.left = "0";
-      container.style.width = "100%";
-      container.style.height = "100%";
-      const canvas = document.createElement("canvas");
-      canvas.id = "bubble-level";
-      canvas.style.width = "100%";
-      canvas.style.height = "100%";
-      container.appendChild(canvas);
-      wrapper.appendChild(container);
-      this.content.appendChild(wrapper);
-      this.shadowRoot.appendChild(this.content);
+set hass(hass) {
+  this._hass = hass;
+  const xValue = parseFloat(hass.states[this.config.x_entity]?.state || 0);
+  const yValue = parseFloat(hass.states[this.config.y_entity]?.state || 0);
+  this.xValue = xValue;
+  this.yValue = yValue;
 
-      this.resizeObserver = new ResizeObserver(entries => {
-        const { width, height } = entries[0].contentRect;
-        canvas.width = width;
-        canvas.height = height;
-        this.drawLevel(this.xValue, this.yValue);
-      });
-      this.resizeObserver.observe(container);
+  if (!this.content) {
+    this.content = document.createElement("div");
+    if (this.config.title) {
+      const headerDiv = document.createElement("div");
+      headerDiv.className = "card-header flex space-between";
+
+      const nameDiv = document.createElement("div");
+      nameDiv.className = "name";
+      const titleSpan = document.createElement("span");
+      titleSpan.innerText = this.config.title;
+      nameDiv.appendChild(titleSpan);
+      headerDiv.appendChild(nameDiv);
+
+      if (this.config.icon) {
+        const iconEl = document.createElement("ha-icon");
+        iconEl.setAttribute("icon", this.config.icon);
+        iconEl.className = "header-icon";
+        headerDiv.appendChild(iconEl);
+      }
+
+      this.content.appendChild(headerDiv);
     }
-    this.drawLevel(xValue, yValue);
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    wrapper.style.width = "100%";
+    wrapper.style.paddingBottom = "100%";
+    const container = document.createElement("div");
+    container.style.position = "absolute";
+    container.style.top = "0";
+    container.style.left = "0";
+    container.style.width = "100%";
+    container.style.height = "100%";
+    const canvas = document.createElement("canvas");
+    canvas.id = "bubble-level";
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    container.appendChild(canvas);
+    wrapper.appendChild(container);
+    this.content.appendChild(wrapper);
+    this.shadowRoot.appendChild(this.content);
+
+    this.resizeObserver = new ResizeObserver(entries => {
+      const { width, height } = entries[0].contentRect;
+      canvas.width = width;
+      canvas.height = height;
+      this.drawLevel(this.xValue, this.yValue);
+    });
+    this.resizeObserver.observe(container);
   }
+  this.drawLevel(xValue, yValue);
+}
 
   drawLevel(x, y) {
     const canvas = this.shadowRoot.getElementById("bubble-level");
@@ -129,9 +149,9 @@ style.textContent = `
     const bubbleRadius = radius * 0.15;
     const maxDistance = radius - bubbleRadius;
 
-	// Apply multiplier to tilt values
-	let bubbleX = x * this.multiplier * maxDistance; // y_entity moves east/west
-	let bubbleY = -y * this.multiplier * maxDistance; // x_entity moves north/south
+    // Apply multiplier to tilt values
+    let bubbleX = x * this.multiplier * maxDistance; // y_entity moves east/west
+    let bubbleY = -y * this.multiplier * maxDistance; // x_entity moves north/south
 
     const distance = Math.sqrt(bubbleX ** 2 + bubbleY ** 2);
     if (distance > maxDistance) {
